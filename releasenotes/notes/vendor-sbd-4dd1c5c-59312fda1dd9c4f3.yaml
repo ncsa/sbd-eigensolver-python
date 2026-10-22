@@ -1,0 +1,27 @@
+---
+upgrade:
+  - |
+    The vendored SBD library has been advanced to r-ccs-cms/sbd ``4dd1c5c``,
+    which carries James Phillips's work on the Thrust backend's TPB
+    multiplication (r-ccs-cms/sbd#95): a launcher with launch bounds at every
+    multiply call site, beta-fast indexing, exchange buffers allocated once per
+    solver rather than per exchange, and grid launches split into chunks when a
+    subspace needs more than ``INT_MAX`` blocks.
+
+    With this version, the Thrust backend's TPB solver aborts the process
+    through ``MPI_Abort`` when OpenMP has a single thread
+    (``omp_get_max_threads() == 1``), printing ``host-side work needs OpenMP
+    threads > 1``. Set ``OMP_NUM_THREADS`` to 2 or more (and, under Slurm,
+    ``--cpus-per-task`` to match) whenever the Thrust backend is used: with
+    ``device='gpu'``, and with ``'auto'``, which prefers it, on a machine with
+    an NVIDIA GPU. The check is in the TPB solver only; the CPU and
+    OpenMP-offload backends and the GDB solver are unaffected.
+fixes:
+  - |
+    The Thrust GPU extension is now compiled with ``-std=c++17`` explicitly, as
+    the CPU and OpenMP-offload extensions already were. It previously relied on
+    ``nvc++``'s default standard, which follows the GCC that NVHPC was
+    configured against; with one configured against GCC 7 that default is
+    C++14, and the build failed in the vendored ``det_vector.h`` with
+    ``namespace "std" has no member "is_trivially_copyable_v"``. Setting
+    ``CXXFLAGS=-std=c++17`` in the build environment is no longer needed.
