@@ -949,6 +949,11 @@ if build_gpu_thrust:
             # it -- only the omp5 branch does. mult.h:17 defines a `mult`
             # overload unconditionally and SBD_TRADMODE merely adds a second one,
             # so this was compiling an overload the Thrust path never calls.
+            # -std=c++17 explicitly, as the CPU and offload blocks pass it:
+            # nvc++'s default follows the GCC it was configured against (C++14
+            # for one on GCC 7), and the vendored headers need C++17
+            # (det_vector.h:44).
+            '-std=c++17',
             '-mp',
             '-cuda',
             '-fast',
